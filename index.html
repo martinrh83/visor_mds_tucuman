@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+	 <head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+
+		<title>::::Visor de Mapas::::</title>
+
+		<link rel="Stylesheet" type="text/css" href="./css/ext/resources/css/ext-all.css"/>
+		<link rel="Stylesheet" type="text/css" href="./css/ext/resources/css/xtheme-gray.css"/>
+		<link rel="Stylesheet" type="text/css" href="./css/openlayers/default/style.css"/>
+		<link rel="Stylesheet" type="text/css" href="./css/openlayers/default/google.css"/>
+		<link rel="Stylesheet" type="text/css" href="./css/geoext/css/geoext-all.css"/>
+		<link rel="Stylesheet" type="text/css" href="./css/geoext/css/printpreview.css"/>
+		<link rel="Stylesheet" type="text/css" href="./css/gxp/all.css"/>
+		<link rel="Stylesheet" type="text/css" href="./css/style.css"/>
+		<link rel="Stylesheet" type="text/css" href="./css/featureInfo.css"/>
+
+		<script type="text/javascript" src="./scripts/ext/adapter/ext/ext-base.js"></script>
+		<script type="text/javascript" src="./scripts/ext/ext-all-debug.js"></script>
+		<script type="text/javascript" src="./scripts/OpenLayers.js"></script> 
+		<script type="text/javascript" src="./scripts/GeoExt/GeoExt.js"></script>
+		<script type="text/javascript" src="./scripts/GeoExt/overrides/override-ext-ajax.js"></script>
+		<script type="text/javascript" src="./scripts/gxp.js"></script>
+    		<script type="text/javascript" src="./scripts/app/tree_groups.js"></script>
+    		<script type="text/javascript" src="./scripts/app/layers.js"></script>
+    		<script type="text/javascript" src="./scripts/app/sources.js"></script>
+		<script type="text/javascript" src="./scripts/RowExpander.js"></script>
+		<script type="text/javascript" src="./scripts/PrintPreview.js"></script>
+    		<script type="text/javascript" src="./scripts/gxp/plugins/GoogleGeocoder.js"></script>
+    		<script type="text/javascript" src="./scripts/gxp/plugins/LayerProperties.js"></script>
+    		<script type="text/javascript" src="./scripts/gxp/plugins/WMSGetFeatureInfo.js"></script>
+		
+		<script type="text/javascript" src="http://10.10.0.6/geoserver/pdf/info.json?var=printCapabilities"></script>
+        	<script type="text/javascript">
+
+		   Ext.onReady(function() {//se usa para inicializar los componentes en el momento adecuado
+
+                GeoExt.Lang.set("es");
+		GeoExt.data.PrintProvider.prototype.method = 'GET';
+		  OpenLayers.IMAGE_RELOAD_ATTEMPTS = 5;
+		  OpenLayers.DOTS_PER_INCH = 25.4 / 0.28;
+                var app = new gxp.Viewer({
+                proxy: "./scripts/proxy/?url=",
+              	portalConfig: {
+		            layout: "border",
+		    items: [//-------------------------------------------------------------------------
+					             
+
+                        {
+                            id: "centerpanel",
+                            xtype: "tabpanel", // xtype:es una propiedad para abreviar la cracion de componentes
+                            //layout: "fit",
+                            region: "center",
+                            activeTab: 0, // map needs to be visible on initialization
+                            border: true,
+                                 items: ["mymap",{title: "Info Programas",html:"<iframe src='InfoProgram.html'>"}, {title: "Acerca de",autoScroll: true,html:"<iframe src='aboutUs.html'>"}]
+                        },
+
+                        {
+                            region: "north",
+                            xtype: "container",
+                            id: "topcontainer",
+                            height: 80,
+                            html:"<img src='scripts/theme/app/bannerministerio.png' style='float: none;'/>",
+                            //width:"80%",
+                            border: false,
+                            split: true,
+                            header: false,
+                            layout: "fit"
+                       },
+
+                       {
+                            id: "eastcontainer",
+                            region: "east",
+                            xtype: "container",
+                            layout: "fit",
+                            //region:"east",
+                            width: 250,
+                            split: true,
+                            header: false,
+                            collapsible: true,
+                            collapseMode: "mini",
+                             defaults: {
+                               width: "100%",
+                               layout: "fit"
+                         },
+
+                            items: [
+
+                                {
+                                   title: "Leyenda",
+                                   id: "legend"
+                                }
+                                    ]     
+                         },
+                      
+                        {
+                            id: "westcontainer",
+                            region: "west",
+                            xtype: "container",
+                            layout: "accordion",
+                            width: 300,
+                            
+                            split: true,
+                            collapsible: true,
+                            collapseMode: "mini",
+                            header: false,
+                            defaults: {
+                               width: "100%",
+                               layout: "fit"
+                         },
+                             items: [
+						                    {
+                                   title: "Capas",
+                                   id: "layer_tree",
+                                   flex: 1
+                                },
+
+							                  
+						                       ]
+                        },
+
+                        {
+                          // container for the FeatureGrid
+                          region: "south",
+                          xtype: "panel",
+                          id: "south",
+                          height: 150,
+                          border: false,
+                          split: true,
+                          collapsible: true,
+                          collapseMode: "mini",
+                          collapsed: true,
+                          //hideCollapseTool: true,
+                          //header: false,
+                          title:"Atributos",
+                          layout: "fit"
+                        }
+
+				              ]
+	             },
+
+	      tools: [//----------------------------------------------------------------------------
+                    {
+                       ptype: "gxp_layertree",
+                       groups: tree_groups,// tree_groups.js,
+                       outputConfig: {
+                          id: "tree",
+                          useArrows: true,
+                          autoScroll: true,
+                          animate: true,
+                          tbar: [],
+                                     },
+                       outputTarget: "layer_tree"
+                    },
+                    
+                    {
+                       ptype: "gxp_legend",
+                       outputTarget: "legend",
+                       outputConfig: {
+                          header: false,
+                          autoScroll: true
+                                      }
+                    },
+                   //------- tree.tbar --------
+                    {
+                    ptype: "gxp_zoomtolayerextent",
+                    actionTarget: ["tree.tbar", "tree.contextMenu"]
+                    },
+
+                    {
+                       ptype: "gxp_addlayers",
+                       actionTarget: "tree.tbar"
+                    },
+
+			              {
+                       ptype: "gxp_removelayer",
+                       actionTarget: ["tree.tbar", "tree.contextMenu"]
+                    },
+                    
+                    {
+                    ptype: "gxp_layerproperties",
+                    actionTarget: ["tree.tbar", "tree.contextMenu"]
+                    },
+                     
+                    //------- map.tbar ---------
+			              {
+                       ptype: "gxp_zoomtoextent",
+                       actionTarget: "map.tbar",
+                       extent: new OpenLayers.Bounds(-7394276.36716, -3251054.68657, -7151512.36536, -2992391.78289),
+                       tooltip: "Ver extensión inicial"
+                    },
+
+			              {
+                       ptype: "gxp_zoom",
+                       showZoomBoxAction: true,
+                       actionTarget: "map.tbar",
+                       toggleGroup: "mapnav",
+			              },
+
+			              {
+                       actions: ["-"],
+                       actionTarget: "map.tbar"
+                    },
+
+			              {
+                       ptype: "gxp_navigationhistory",
+                       actionTarget: "map.tbar"
+                    },
+                    {
+                    actions: ["-"],
+                    actionTarget: "map.tbar"
+                    },
+
+                    {
+                    ptype: "gxp_googlegeocoder",
+                    outputTarget: "map.tbar",
+                    outputConfig: {
+                    emptyText: "Buscar ..."
+                                  }
+                    },
+                   {
+                    actions: ["-"],
+                    actionTarget: "map.tbar"
+                    },
+                   {
+                    ptype: "gxp_wmsgetfeatureinfo",
+                    format: "grid",
+                    outputConfig: {
+                        width: 700,
+                        height: 350,
+                        draggable: true
+                    },
+                    showButtonText: true,
+                    buttonText:"Información",
+                    actionTarget: "map.tbar",
+                    toggleGroup: "tools"
+                    },
+
+                    {
+                    actions: ["-"],
+                    actionTarget: "map.tbar"
+                    },
+
+                    {
+                     ptype: "gxp_measure",
+                     outputConfig: {
+                     width: 400,
+                     height: "auto"
+                     },
+                      showButtonText: true,
+                      actionTarget: "map.tbar"
+                    },
+			{
+			ptype:"gxp_print",
+			printService:"http://10.10.0.6/geoserver/pdf/",
+			includeLegend:true,
+			showButtonText:true,
+			actionTarget:"map.tbar"
+			},
+
+			              {
+                       actions: ["->"],
+                       actionTarget: "map.tbar"
+                    },
+                      //---------  south grid --------------
+                    {
+                   
+                      ptype: "gxp_featuremanager",
+                      id: "featuremanager",
+                      autoLoadFeatures: true,
+                      paging: true,
+                      maxFeatures: 30
+                   },
+			{
+			ptype:"gxp_featuregrid",
+			featureManager:"featuremanager",
+			showTotalResults:true,
+			autoLoadFeature:false,
+			alwaysDisplayOnMap:true,
+			controlOptions:{
+			multiple:true	},
+			displayMode:"selected",
+			outputConfig:{
+				id:"featuregrid"},
+			outputTarget:"south"
+			
+			},
+
+			{
+			ptype:"gxp_queryform",
+			featureManager:"featuremanager",
+			autoExpand:"south",
+			outputConfig:{
+				title:"Query",
+				width:330
+					},
+
+			actionTarget:"tree.tbar",
+			appendActions:false
+			},
+       
+                 ],
+
+       mapItems: [//------------------------------------------------------------------
+				            {
+                       xtype: "gx_zoomslider",
+                       vertical: true,
+                       height: 100
+                    },
+                    {
+            xtype: "gxp_scaleoverlay"
+                     }
+	               ],
+
+
+	             defaultSourceType: "gxp_wmssource",
+				 
+        sources: sources,//----------------------------------------------------------------------
+     	            
+
+        map: {//-------------------------------------------------------------
+                    id: "mymap",
+                    title: "Mapa",
+		      projection: "EPSG:4326",
+                    center: [-65.391199912674, -26.923574696899],
+		      zoom: 9,
+		      numZoomLevels: 22,//el numero de niveles de zoom
+		      zoomDuration: 10, 
+
+         layers: layers  // layers.js
+	                   
+		          }
+           });
+
+			  app.mapPanel.map.addControl(getOverviewControl());
+        app.mapPanel.map.addControl(
+                 new OpenLayers.Control.MousePosition({
+                    formatOutput: function(lonLat) {
+                       markup = 'EPSG:3857 |';	
+                       point = lonLat.transform(new OpenLayers.Projection("EPSG:3857"), new OpenLayers.Projection("EPSG:4326"));//La clase LonLat tiene un método, transform(src, dst) que transforma el punto de la proyección src a la proyección dst
+                       markup += convertDMS(point.lat) + "," + convertDMS(point.lon);
+                       return markup;
+                                                    }
+                                                     })
+                                  );
+
+
+
+           });
+        </script>
+		
+	 </head>
+
+	 <body>
+		<div id="coords" style="height: 1.5em;"></div>
+	 </body>
+</html>
+
+
+
